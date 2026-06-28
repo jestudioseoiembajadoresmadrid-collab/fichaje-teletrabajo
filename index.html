@@ -91,7 +91,7 @@
         <button id="btnNext" onclick="cambiarMes(1)">Siguiente Mes ▶</button>
       </div>
       
-      <div style="width: 100px; text-align: right; font-size: 12px; color: #666;">v2.0 Secure-Link</div>
+      <div style="width: 100px; text-align: right; font-size: 12px; color: #666;">v3.0 Fix-Type</div>
     </div>
 
     <div class="weekdays">
@@ -111,7 +111,7 @@
     <div class="modal-content">
       <h2>Validar Identidad y Fichar</h2>
       <p id="modalFechaTexto" style="font-size:15px; margin: 5px 0 20px 0; color:#555;"></p>
-      <p style="font-size: 13px; color: #666; margin-bottom: 15px;">Se abrirá una ventana segura de EducaMadrid/Google para confirmar tu identidad automáticamente.</p>
+      <p style="font-size: 13px; color: #666; margin-bottom: 15px;">Se abrirá una ventana segura para registrar la acción en tu jornada de hoy.</p>
       
       <div class="btn-group">
         <button class="btn-entrada" onclick="redireccionarFichaje('Entrada')">Fichar Entrada ↗</button>
@@ -123,6 +123,7 @@
   </div>
 
   <script>
+    // URL de tu Backend institucional
     const BACKEND_URL = "https://script.google.com/a/macros/educa.madrid.org/s/AKfycbwRxiYjVlQmEg-xAQX_WHn5dvw50fIvuIa-yJFrd7a77-cmGovS4JrPvivSTTxLIu6x8A/exec";
 
     const RANGO_MIN = new Date("2026-06-01T00:00:00");
@@ -218,15 +219,17 @@
       modal.style.display = "flex";
     }
 
-    function cerrarModal() {
-      document.getElementById("fichajeModal").style.display = "none";
+    // Corregido: Limpieza y codificación estricta del parámetro URI
+    function redireccionarFichaje(tipo) {
+      const parametroTipo = encodeURIComponent(tipo.trim());
+      const urlFinal = BACKEND_URL + "?tipo=" + parametroTipo;
+      
+      window.open(urlFinal, "_blank"); 
+      cerrarModal();
     }
 
-    // Solución maestra: Redirección directa para saltarse el bloqueo de cookies de GitHub
-    function redireccionarFichaje(tipo) {
-      const urlFinal = BACKEND_URL + "?tipo=" + tipo;
-      window.open(urlFinal, "_blank"); // Abre la pestaña de Google para identificarse y registrar
-      cerrarModal();
+    function cerrarModal() {
+      document.getElementById("fichajeModal").style.display = "none";
     }
   </script>
 </body>
