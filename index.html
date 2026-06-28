@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>App de Fichaje - Profesorado EducaMadrid</title>
+  
+  <meta http-equiv="Content-Security-Policy" content="
+    default-src 'none';
+    script-src 'self' 'unsafe-inline';
+    style-src 'self' 'unsafe-inline';
+    connect-src https://script.google.com https://script.googleusercontent.com;
+    form-action 'self';
+  ">
+
+  <style>
+    :root {
+      --primary: #0056b3;
+      --primary-hover: #004085;
+      --success: #28a745;
+      --danger: #dc3545;
+      --bg-pills: #e9ecef;
+    }
+    *, *::before, *::after { box-sizing: border-box; }
+    
+    html, body {
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      height: 100%;
+      background-color: #f4f6f9;
+      font-family: Arial, sans-serif;
+      color: #333;
+      overflow: hidden; /* Evita barras de desplazamiento externas */
+    }
+    
+    /* Contenedor a pantalla completa */
+    .container {
+      width: 100vw;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      padding: 15px;
+      background: #fff;
+    }
+    
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
+      padding-bottom: 5px;
+      border-bottom: 1px solid #e0e0e0;
+      flex-shrink: 0; /* Impide que la cabecera se encoja */
+    }
+    
+    h1 { color: var(--primary); font-size: 20px; margin: 0; }
+    .sub { font-size: 13px; color: #666; margin: 0; }
+    
+    /* Calendario Estilo UI Full-Screen */
+    .calendar-nav {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 30px;
+    }
+    
+    .calendar-nav button {
+      width: auto;
+      padding: 6px 14px;
+      background: var(--primary);
+      color: white;
+      border-radius: 4px;
+      font-size: 14px;
+    }
+    
+    .calendar-nav button:hover { background: var(--primary-hover); }
+    
+    .month-title {
+      font-size: 18px;
+      font-weight: bold;
+      text-transform: capitalize;
+      min-width: 150px;
+      text-align: center;
+    }
+    
+    .weekdays {
+      display: table;
+      width: 100%;
+      text-align: center;
+      font-weight: bold;
+      background: #eee;
+      border-radius: 4px;
+      flex-shrink: 0;
+    }
+    
+    .weekday {
+      display: table-cell;
+      width: 14.28%;
+      padding: 10px 0;
+      font-size: 13px;
+      color: #555;
+    }
+    
+    /* Contenedor elástico para la cuadrícula */
+    .days-grid {
+      display: flex;
+      flex-direction: column;
+      flex-grow: 1; /* Ocupa todo el espacio vertical restante */
+      margin-top: 5px;
+      width: 100%;
+    }
+    
+    .row {
+      display: flex;
+      width: 100%;
+      flex-grow: 1; /* Hace que cada fila de semanas mida lo mismo verticalmente */
+    }
+    
+    .day {
+      width: 14.28%;
+      border: 1px solid #e2e8f0;
+      font-size: 16px;
+      font-weight: bold;
+      cursor: not-allowed;
+      color: #cbd5e1;
+      background-color: #f8fafc;
+      padding: 8px;
+      display: flex;
+      align-items: flex-start; /* Pone el número del día arriba a la izquierda */
+      justify-content: flex-start;
+      transition: background 0.15s ease;
+    }
+    
+    .day.in-range {
+      color: #334155;
+      background-color: #fff;
+    }
+    
+    /* Resaltar el día actual */
+    .day.hoy {
+      background-color: #fef08a !important;
+      border: 3px solid #eab308 !important;
+      color: #1e293b;
+      cursor: pointer;
+    }
+    
+    .day.hoy:hover {
+      background-color: #fde047 !important;
+    }
+    
+    /* Ventana Flotante / Modal de Fichaje */
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(15, 23, 42, 0.6);
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+    }
+    
+    .modal-content {
+      background: white;
+      padding: 30px;
+      border-radius: 8px;
+      max-width: 400px;
+      width: 90%;
+      text-align: center;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+    }
+    
+    .modal h2 { margin-top: 0; font-size: 22px; color: #1e293b; }
+    
+    .btn-group {
+      display: flex;
+      gap: 15px;
+      margin-top: 20px;
+    }
+    
+    button {
+      padding: 14px 20px;
+      font-size: 15px;
+      font-weight: bold;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    
+    .btn-entrada { background-color: var(--success); color: white; width: 100%; }
+    .btn-entrada:hover:not(:disabled) { background-color: #218838; }
+    .btn-salida { background-color: var(--danger); color: white; width: 100%; }
+    .btn-salida:hover:not(:disabled) { background-color: #c82333; }
+    .btn-close { background-color: #64748b; color: white; margin-top: 20px; padding: 10px; font-size: 14px; width: 100%; }
+    
+    button:disabled { background-color: #cbd5e1 !important; cursor: not-allowed; opacity: 0.6; }
+    
+    #statusFeedback {
+      margin-top: 15px;
+      padding: 12px;
+      border-radius: 5px;
+      font-weight: bold;
+      display: none;
+      font-size: 14px;
+    }
+    .success-msg { background-color: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+    .error-msg { background-color: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <div class="header">
+      <div>
+        <h1>Control de Teletrabajo</h1>
+        <p class="sub">Personal EducaMadrid</p>
+      </div>
+      
+      <div class="calendar-nav">
+        <button id="btnPrev" onclick="cambiarMes(-1)">◀ Mes Anterior</button>
+        <div id="monthTitle" class="month-title"></div>
+        <button id="btnNext" onclick="cambiarMes(1)">Siguiente Mes ▶</button>
+      </div>
+      
+      <div style="width: 100px; text-align: right; font-size: 12px; color: #666;">v1.0 Fullscreen</div>
+    </div>
+
+    <div class="weekdays">
+      <div class="weekday">Lunes</div>
+      <div class="weekday">Martes</div>
+      <div class="weekday">Miércoles</div>
+      <div class="weekday">Jueves</div>
+      <div class="weekday">Viernes</div>
+      <div class="weekday">Sábado</div>
+      <div class="weekday">Domingo</div>
+    </div>
+
+    <div id="daysGrid" class="days-grid"></div>
+  </div>
+
+  <div id="fichajeModal" class="modal">
+    <div class="modal-content">
+      <h2>Fichaje Diario</h2>
+      <p id="modalFechaTexto" style="font-size:16px; margin: 5px 0 20px 0; color:#555;"></p>
+      
+      <div class="btn-group">
+        <button id="btnEntrada" class="btn-entrada" onclick="ejecutarFichaje('Entrada')">Fichar Entrada</button>
+        <button id="btnSalida" class="btn-salida" onclick="ejecutarFichaje('Salida')">Fichar Salida</button>
+      </div>
+      
+      <div id="statusFeedback"></div>
+      <button class="btn-close" id="btnCerrarModal" onclick="cerrarModal()">Cancelar / Cerrar</button>
+    </div>
+  </div>
+
+  <script>
+    const BACKEND_URL = "https://script.google.com/a/macros/educa.madrid.org/s/AKfycbwRxiYjVlQmEg-xAQX_WHn5dvw50fIvuIa-yJFrd7a77-cmGovS4JrPvivSTTxLIu6x8A/exec";
+
+    const RANGO_MIN = new Date("2026-06-01T00:00:00");
+    const RANGO_MAX = new Date("2027-06-30T23:59:59");
+
+    let fechaActualVista = new Date();
+
+    document.addEventListener("DOMContentLoaded", () => {
+      const hoy = new Date();
+      if (hoy < RANGO_MIN) {
+        fechaActualVista = new Date(2026, 5, 1);
+      } else if (hoy > RANGO_MAX) {
+        fechaActualVista = new Date(2027, 5, 1);
+      }
+      renderizarCalendario();
+    });
+
+    function renderizarCalendario() {
+      const grid = document.getElementById("daysGrid");
+      const title = document.getElementById("monthTitle");
+      grid.textContent = ""; 
+
+      const año = fechaActualVista.getFullYear();
+      const mes = fechaActualVista.getMonth();
+
+      const opcionesMes = { month: 'long', year: 'numeric' };
+      title.textContent = fechaActualVista.toLocaleDateString('es-ES', opcionesMes);
+
+      const primerDiaMes = new Date(año, mes, 1);
+      const ultimoDiaMes = new Date(año, mes + 1, 0);
+
+      let diaInicioSemana = primerDiaMes.getDay() - 1;
+      if (diaInicioSemana === -1) diaInicioSemana = 6;
+
+      const totalDias = ultimoDiaMes.getDate();
+      const hoy = new Date();
+
+      let diaContador = 1;
+      let filaActual = document.createElement("div");
+      filaActual.classList.add("row");
+
+      for (let i = 0; i < diaInicioSemana; i++) {
+        let celdaVacia = document.createElement("div");
+        celdaVacia.classList.add("day");
+        filaActual.appendChild(celdaVacia);
+      }
+
+      while (diaContador <= totalDias) {
+        if (filaActual.children.length === 7) {
+          grid.appendChild(filaActual);
+          filaActual = document.createElement("div");
+          filaActual.classList.add("row");
+        }
+
+        const celdaDia = document.createElement("div");
+        celdaDia.classList.add("day");
+        celdaDia.textContent = diaContador;
+
+        const fechaCelda = new Date(año, mes, diaContador);
+
+        if (fechaCelda >= RANGO_MIN && fechaCelda <= RANGO_MAX) {
+          celdaDia.classList.add("in-range");
+          
+          if (fechaCelda.getDate() === hoy.getDate() && 
+              fechaCelda.getMonth() === hoy.getMonth() && 
+              fechaCelda.getFullYear() === hoy.getFullYear()) {
+            celdaDia.classList.add("hoy");
+            celdaDia.title = "Haz clic aquí para fichar";
+            celdaDia.addEventListener("click", () => abrirModalFichaje(fechaCelda));
+          }
+        }
+
+        filaActual.appendChild(celdaDia);
+        diaContador++;
+      }
+
+      while (filaActual.children.length < 7) {
+        let celdaVacia = document.createElement("div");
+        celdaVacia.classList.add("day");
+        filaActual.appendChild(celdaVacia);
+      }
+      grid.appendChild(filaActual);
+    }
+
+    function cambiarMes(direccion) {
+      fechaActualVista.setMonth(fechaActualVista.getMonth() + direccion);
+      renderizarCalendario();
+    }
+
+    function abrirModalFichaje(fecha) {
+      const modal = document.getElementById("fichajeModal");
+      const textoFecha = document.getElementById("modalFechaTexto");
+      const feedback = document.getElementById("statusFeedback");
+      
+      feedback.style.display = "none";
+      document.getElementById("btnEntrada").disabled = false;
+      document.getElementById("btnSalida").disabled = false;
+      document.getElementById("btnCerrarModal").disabled = false;
+
+      textoFecha.textContent = fecha.toLocaleDateString('es-ES', {
+        weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
+      });
+      modal.style.display = "flex";
+    }
+
+    function cerrarModal() {
+      document.getElementById("fichajeModal").style.display = "none";
+    }
+
+    function ejecutarFichaje(tipo) {
+      const btnEntrada = document.getElementById("btnEntrada");
+      const btnSalida = document.getElementById("btnSalida");
+      const btnCerrar = document.getElementById("btnCerrarModal");
+      
+      btnEntrada.disabled = true;
+      btnSalida.disabled = true;
+      btnCerrar.disabled = true;
+
+      manejarFeedback("Conectando de forma segura con EducaMadrid...", "success-msg");
+
+      fetch(BACKEND_URL, {
+        method: "POST",
+        mode: "cors",
+        headers: { "Content-Type": "text/plain" },
+        body: JSON.stringify({ tipo: tipo })
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (data.estado === "exito") {
+          manejarFeedback(data.mensaje, "success-msg");
+          setTimeout(() => { cerrarModal(); }, 2500);
+        } else {
+          manejarFeedback(data.mensaje, "error-msg");
+          btnEntrada.disabled = false;
+          btnSalida.disabled = false;
+          btnCerrar.disabled = false;
+        }
+      })
+      .catch(error => {
+        manejarFeedback("Error crítico de red. Verifique su sesión institucional.", "error-msg");
+        btnEntrada.disabled = false;
+        btnSalida.disabled = false;
+        btnCerrar.disabled = false;
+      });
+    }
+
+    function manejarFeedback(mensaje, clase) {
+      const f = document.getElementById("statusFeedback");
+      f.className = "";
+      f.classList.add(clase);
+      f.textContent = mensaje; 
+      f.style.display = "block";
+    }
+  </script>
+</body>
+</html>
