@@ -7,91 +7,158 @@
   
   <style>
     :root {
-      --primary: #0056b3;
-      --primary-hover: #004085;
-      --success: #28a745;
-      --danger: #dc3545;
+      /* Paleta institucional basada en el logotipo verde corporativo */
+      --brand-primary: #1e5631;       /* Verde bosque elegante */
+      --brand-light: #a4de02;         /* Verde lima brillante para detalles */
+      --brand-accent: #4c9a2a;        /* Verde medio interactivo */
+      --brand-hover: #143d22;         /* Verde oscuro para estados hover */
+      --success: #2e7d32;
+      --danger: #c62828;
+      --gray-base: #f8fafc;
+      --gray-border: #e2e8f0;
     }
     *, *::before, *::after { box-sizing: border-box; }
     
     html, body {
       margin: 0; padding: 0; width: 100%; height: 100%;
-      background-color: #f4f6f9; font-family: Arial, sans-serif; color: #333;
-      overflow: hidden;
+      background-color: #f1f5f9; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      color: #1e293b; overflow: hidden;
     }
     
+    /* Contenedor principal estilizado */
     .container {
-      width: 100vw; height: 100vh; display: flex; flex-direction: column; padding: 15px; background: #fff;
+      width: 100vw; height: 100vh; display: flex; flex-direction: column; padding: 20px; background: #fff;
     }
     
+    /* Cabecera corporativa rediseñada */
     .header {
       display: flex; justify-content: space-between; align-items: center;
-      margin-bottom: 10px; padding-bottom: 5px; border-bottom: 1px solid #e0e0e0; flex-shrink: 0;
+      margin-bottom: 15px; padding-bottom: 12px; border-bottom: 2px solid var(--gray-border); flex-shrink: 0;
     }
     
-    h1 { color: var(--primary); font-size: 20px; margin: 0; }
-    .sub { font-size: 13px; color: #666; margin: 0; }
+    .brand-box {
+      display: flex; align-items: center; gap: 15px;
+    }
     
-    .calendar-nav { display: flex; justify-content: center; align-items: center; gap: 30px; }
-    .calendar-nav button { padding: 6px 14px; background: var(--primary); color: white; border-radius: 4px; font-size: 14px; border: none; cursor: pointer; }
-    .calendar-nav button:hover { background: var(--primary-hover); }
+    .logo-img {
+      height: 55px; width: auto; object-fit: contain;
+      border-radius: 4px;
+    }
     
-    .month-title { font-size: 18px; font-weight: bold; text-transform: capitalize; min-width: 150px; text-align: center; }
+    h1 { color: var(--brand-primary); font-size: 22px; margin: 0; font-weight: 700; letter-spacing: -0.5px; }
+    .sub { font-size: 13px; color: #64748b; margin: 3px 0 0 0; font-weight: 500; }
     
-    .weekdays { display: table; width: 100%; text-align: center; font-weight: bold; background: #eee; border-radius: 4px; flex-shrink: 0; }
-    .weekday { display: table-cell; width: 14.28%; padding: 10px 0; font-size: 13px; color: #555; }
+    /* Navegación del calendario estilizada */
+    .calendar-nav { display: flex; justify-content: center; align-items: center; gap: 20px; }
     
-    .days-grid { display: flex; flex-direction: column; flex-grow: 1; margin-top: 5px; width: 100%; }
-    .row { display: flex; width: 100%; flex-grow: 1; }
+    .calendar-nav button { 
+      padding: 8px 16px; background: var(--brand-primary); color: white; 
+      border-radius: 6px; font-size: 14px; font-weight: 600; border: none; cursor: pointer;
+      transition: background 0.2s ease, transform 0.1s ease;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    }
+    .calendar-nav button:hover { background: var(--brand-hover); }
+    .calendar-nav button:active { transform: scale(0.98); }
+    
+    /* Titulo del mes en minúsculas y destacado visualmente */
+    .month-title { 
+      font-size: 22px; 
+      font-weight: 800; 
+      text-transform: lowercase; /* Fuerza todo el texto a minúsculas */
+      min-width: 190px; 
+      text-align: center; 
+      color: var(--brand-primary);
+      letter-spacing: -0.3px;
+      text-shadow: 0 1px 1px rgba(0, 0, 0, 0.05);
+    }
+    
+    /* Días de la semana */
+    .weekdays { 
+      display: table; width: 100%; text-align: center; font-weight: 700;  
+      background: var(--brand-primary); color: white; border-radius: 6px; flex-shrink: 0;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    }
+    .weekday { display: table-cell; width: 14.28%; padding: 12px 0; font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px; }
+    
+    /* Cuadrícula elástica de celdas */
+    .days-grid { display: flex; flex-direction: column; flex-grow: 1; margin-top: 10px; width: 100%; gap: 4px; }
+    .row { display: flex; width: 100%; flex-grow: 1; gap: 4px; }
     
     .day {
-      width: 14.28%; border: 1px solid #e2e8f0; font-size: 16px; font-weight: bold;
-      cursor: not-allowed; color: #cbd5e1; background-color: #f8fafc; padding: 8px;
+      width: 14.28%; border: 1px solid var(--gray-border); font-size: 15px; font-weight: 600;
+      cursor: not-allowed; color: #94a3b8; background-color: var(--gray-base); padding: 10px;
       display: flex; align-items: flex-start; justify-content: flex-start;
+      border-radius: 4px; transition: all 0.2s ease;
     }
     
     .day.in-range { color: #334155; background-color: #fff; }
     
+    /* Estilo premium e interactivo para el día actual */
     .day.hoy {
-      background-color: #fef08a !important; border: 3px solid #eab308 !important; color: #1e293b; cursor: pointer;
+      background: linear-gradient(135deg, #fffde6 0%, #fef9c3 100%) !important;
+      border: 2.5px solid var(--brand-accent) !important; color: var(--brand-primary); cursor: pointer;
+      box-shadow: inset 0 0 8px rgba(76, 154, 42, 0.15), 0 4px 6px -1px rgba(0,0,0,0.05);
+      font-size: 18px;
     }
-    .day.hoy:hover { background-color: #fde047 !important; }
+    .day.hoy:hover { 
+      background: linear-gradient(135deg, #fef9c3 0%, #fef08a 100%) !important;
+      transform: translateY(-1px);
+      box-shadow: inset 0 0 8px rgba(76, 154, 42, 0.2), 0 10px 15px -3px rgba(0,0,0,0.08);
+    }
     
-    /* Ventana Flotante / Modal de Fichaje */
+    /* Ventana Flotante / Modal elegante */
     .modal {
       display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-      background: rgba(15, 23, 42, 0.6); align-items: center; justify-content: center; z-index: 1000;
+      background: rgba(15, 23, 42, 0.4); backdrop-filter: blur(4px); align-items: center; justify-content: center; z-index: 1000;
     }
     
     .modal-content {
-      background: white; padding: 30px; border-radius: 8px; max-width: 400px; width: 90%; text-align: center; box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+      background: white; padding: 35px; border-radius: 12px; max-width: 440px; width: 90%; 
+      text-align: center; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1), 0 10px 10px -5px rgba(0,0,0,0.04);
+      border-top: 6px solid var(--brand-primary);
     }
     
-    .modal h2 { margin-top: 0; font-size: 22px; color: #1e293b; }
-    .btn-group { display: flex; gap: 15px; margin-top: 20px; }
+    .modal h2 { margin-top: 0; font-size: 24px; color: var(--brand-primary); font-weight: 700; }
+    .btn-group { display: flex; gap: 15px; margin-top: 25px; }
     
-    .modal button { padding: 14px 20px; font-size: 15px; font-weight: bold; border: none; border-radius: 5px; cursor: pointer; }
-    .btn-entrada { background-color: var(--success); color: white; width: 100%; }
-    .btn-salida { background-color: var(--danger); color: white; width: 100%; }
-    .btn-close { background-color: #64748b; color: white; margin-top: 20px; padding: 10px; font-size: 14px; width: 100%; }
+    .modal button { 
+      padding: 14px 22px; font-size: 15px; font-weight: 700; border: none; 
+      border-radius: 8px; cursor: pointer; transition: all 0.2s ease;
+    }
+    .btn-entrada { background-color: var(--success); color: white; width: 100%; box-shadow: 0 2px 4px rgba(46,125,50,0.2); }
+    .btn-entrada:hover { background-color: #1b5e20; transform: translateY(-1px); }
+    
+    .btn-salida { background-color: var(--danger); color: white; width: 100%; box-shadow: 0 2px 4px rgba(198,40,40,0.2); }
+    .btn-salida:hover { background-color: #b71c1c; transform: translateY(-1px); }
+    
+    .btn-close { 
+      background-color: #64748b; color: white; margin-top: 20px; padding: 10px; 
+      font-size: 14px; width: 100%; font-weight: 600;
+    }
+    .btn-close:hover { background-color: #475569; }
+    
+    .version-tag { width: 120px; text-align: right; font-size: 12px; color: #94a3b8; font-weight: 600; }
   </style>
 </head>
 <body>
 
   <div class="container">
     <div class="header">
-      <div>
-        <h1>Control de Teletrabajo</h1>
-        <p class="sub">Personal EducaMadrid</p>
+      <div class="brand-box">
+        <img class="logo-img" src="https://lh3.googleusercontent.com/d/1OxKQC2Y6WkgxgWSn3_v8U7DBvVfijXgt" alt="Logo Centro" onerror="this.style.display='none';">
+        <div>
+          <h1>Teletrabajo EOI EMBAJADORES</h1>
+          <p class="sub">Personal DOCENTE</p>
+        </div>
       </div>
       
       <div class="calendar-nav">
-        <button id="btnPrev" onclick="cambiarMes(-1)">◀ Mes Anterior</button>
+        <button id="btnPrev" onclick="cambiarMes(-1)">◀ Anterior</button>
         <div id="monthTitle" class="month-title"></div>
-        <button id="btnNext" onclick="cambiarMes(1)">Siguiente Mes ▶</button>
+        <button id="btnNext" onclick="cambiarMes(1)">Siguiente ▶</button>
       </div>
       
-      <div style="width: 100px; text-align: right; font-size: 12px; color: #666;">v3.0 Fix-Type</div>
+      <div class="version-tag">v3.6 Elegant UI</div>
     </div>
 
     <div class="weekdays">
@@ -110,8 +177,8 @@
   <div id="fichajeModal" class="modal">
     <div class="modal-content">
       <h2>Validar Identidad y Fichar</h2>
-      <p id="modalFechaTexto" style="font-size:15px; margin: 5px 0 20px 0; color:#555;"></p>
-      <p style="font-size: 13px; color: #666; margin-bottom: 15px;">Se abrirá una ventana segura para registrar la acción en tu jornada de hoy.</p>
+      <p id="modalFechaTexto" style="font-size:16px; margin: 5px 0 20px 0; color:#475569; font-weight: 600;"></p>
+      <p style="font-size: 13px; color: #64748b; margin-bottom: 15px; line-height: 1.4;">Se abrirá una ventana segura bajo el entorno institucional para registrar la acción en tu jornada laboral.</p>
       
       <div class="btn-group">
         <button class="btn-entrada" onclick="redireccionarFichaje('Entrada')">Fichar Entrada ↗</button>
@@ -123,7 +190,6 @@
   </div>
 
   <script>
-    // URL de tu Backend institucional
     const BACKEND_URL = "https://script.google.com/a/macros/educa.madrid.org/s/AKfycbwRxiYjVlQmEg-xAQX_WHn5dvw50fIvuIa-yJFrd7a77-cmGovS4JrPvivSTTxLIu6x8A/exec";
 
     const RANGO_MIN = new Date("2026-06-01T00:00:00");
@@ -149,7 +215,8 @@
       const año = fechaActualVista.getFullYear();
       const mes = fechaActualVista.getMonth();
 
-      title.textContent = fechaActualVista.toLocaleDateString('es-ES', { month: 'long', year: 'numeric' });
+      // Corregido: Se aplica toLowerCase() directamente para homogeneizar en minúsculas en todos los navegadores
+      title.textContent = fechaActualVista.toLocaleDateString('es-ES', { month: 'long', year: 'numeric' }).toLowerCase();
 
       const primerDiaMes = new Date(año, mes, 1);
       const ultimoDiaMes = new Date(año, mes + 1, 0);
@@ -219,7 +286,6 @@
       modal.style.display = "flex";
     }
 
-    // Corregido: Limpieza y codificación estricta del parámetro URI
     function redireccionarFichaje(tipo) {
       const parametroTipo = encodeURIComponent(tipo.trim());
       const urlFinal = BACKEND_URL + "?tipo=" + parametroTipo;
